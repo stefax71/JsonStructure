@@ -10,10 +10,15 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiTreeChangeEvent
+import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import java.awt.BorderLayout
@@ -23,13 +28,14 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneUI
+import javax.swing.tree.DefaultTreeModel
 
 private const val SHOW_JSON_STRUCTURE = "Show JSON Structure"
 
 class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEditor, Disposable {
     private val mainPanel = JPanel(BorderLayout())
     private var toolbarPanel = JPanel(BorderLayout())
-    private val tree = Tree()
+    private var tree = Tree()
     private val propertyChangeSupport = PropertyChangeSupport(this)
 
     private lateinit var editor: Editor
@@ -53,6 +59,59 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
             file,
             false
         )
+
+        val treeProcessor = JsonPsiTreeProcessor(psiFile)
+        editor.document.addDocumentListener(object : DocumentListener {
+            override fun documentChanged(event: DocumentEvent) {
+                rebuildTree(project, treeProcessor)
+            }
+        })
+
+        val psiTreeChangeListener = createPsiChangeListener(psiFile, project, treeProcessor)
+
+        // Aggiungi il listener alla gestione PSI
+        PsiManager.getInstance(project).addPsiTreeChangeListener(psiTreeChangeListener, this)
+
+
+        val treeRoot = treeProcessor.createTreeRoot()
+        tree = Tree(treeRoot)
+
+    }
+
+    private fun createPsiChangeListener(
+        psiFile: PsiFile?,
+        project: Project,
+        treeProcessor: JsonPsiTreeProcessor
+    ) = object : PsiTreeChangeListener {
+        override fun childrenChanged(event: PsiTreeChangeEvent) {
+            if (event.file == psiFile) {
+                rebuildTree(project, treeProcessor)
+            }
+        }
+
+        override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
+        override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
+        override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
+        override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
+        override fun beforeChildrenChange(event: PsiTreeChangeEvent) {}
+        override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
+        override fun childAdded(event: PsiTreeChangeEvent) {}
+        override fun childRemoved(event: PsiTreeChangeEvent) {}
+        override fun childReplaced(event: PsiTreeChangeEvent) {}
+        override fun childMoved(event: PsiTreeChangeEvent) {}
+        override fun propertyChanged(event: PsiTreeChangeEvent) {}
+    }
+
+    private fun rebuildTree(project: Project, treeProcessor: JsonPsiTreeProcessor) {
+        // Ottieni di nuovo il PsiFile per assicurarsi che rifletta le modifiche attuali
+        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
+
+        // Ricrea la radice dell'albero con il contenuto aggiornato
+        val newRootNode = treeProcessor.createTreeRoot()
+
+        // Imposta la nuova radice sull'albero esistente
+        (tree.model as? DefaultTreeModel)?.setRoot(newRootNode)
+        (tree.model as? DefaultTreeModel)?.reload()
     }
 
     private fun setupUI() {
@@ -104,7 +163,7 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
 
     override fun getPreferredFocusedComponent(): JComponent? = toolbarPanel
 
-    override fun getName(): String = "JSON Custom Editor"
+    override fun getName(): String = "JSON Structure Editor"
 
     override fun setState(state: FileEditorState) {}
 
@@ -113,7 +172,9 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
     override fun isValid(): Boolean = file.isValid
 
     override fun dispose() {
-        // Libera risorse se necessario
+        if (::editor.isInitialized) {
+            EditorFactory.getInstance().releaseEditor(editor)
+        }
     }
 
     override fun <T : Any?> getUserData(key: Key<T>): T? = null
