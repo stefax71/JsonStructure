@@ -30,7 +30,7 @@ jobs:
 
       - name: Archive the build artifacts
         if: success()
-        uses: actions/upload-artifact@v4.3.1.0
+        uses: actions/upload-artifact@v4
         with:
           name: gradle-artifacts
           path: build/libs/*.jar  # Modifica il percorso se il tuo artefatto ha un nome o una posizione diversa
