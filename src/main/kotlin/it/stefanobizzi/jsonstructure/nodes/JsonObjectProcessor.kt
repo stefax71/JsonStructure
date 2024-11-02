@@ -15,17 +15,11 @@ class JsonObjectProcessor : JsonElementProcessor {
      */
     override fun process(node: DefaultMutableTreeNode, element: PsiElement) {
         val jsonObject = element as JsonObject
+        node.userObject = jsonObject // Imposta PsiElement come userObject
 
-        // If the parent of the JSON object is a JSON property, use the property's name as the user object of the node.
-        jsonObject.parent?.let {
-            if (it is JsonProperty) {
-                node.userObject = it.name // Use the name of the property if available
-            }
-        }
-
-        // Iterate through the properties of the JSON object and add them as child nodes.
         for (property in jsonObject.propertyList) {
-            val childNode = DefaultMutableTreeNode(property.name)
+            val childNode = DefaultMutableTreeNode(property) // Usa PsiElement per ogni nodo
+            childNode.userObject = property // Imposta il PsiElement come userObject per il nodo figlio
             node.add(childNode)
             property.value?.let { JsonPsiTreeProcessor.processNode(childNode, it) }
         }

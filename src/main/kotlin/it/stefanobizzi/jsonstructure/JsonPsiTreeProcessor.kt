@@ -16,6 +16,7 @@ class JsonPsiTreeProcessor(private val psiFile: PsiFile) {
      *
      * @return The root node of the tree.
      */
+
     fun createTreeRoot(): DefaultMutableTreeNode {
         val rootNode = DefaultMutableTreeNode("Root")
         val firstElement = psiFile.firstChild

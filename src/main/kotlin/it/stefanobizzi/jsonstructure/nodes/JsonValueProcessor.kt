@@ -1,6 +1,7 @@
 package it.stefanobizzi.jsonstructure.nodes
 
 import com.intellij.json.psi.JsonProperty
+import com.intellij.json.psi.JsonValue
 import com.intellij.psi.PsiElement
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -12,9 +13,12 @@ class JsonValueProcessor : JsonElementProcessor {
      * @param element The PSI element to be processed.
      */
     override fun process(node: DefaultMutableTreeNode, element: PsiElement) {
-        val parentProperty = element.parent as? JsonProperty
-        if (parentProperty != null) {
-            node.userObject = "${parentProperty.name}: ${element.text}"
+        // Imposta il PsiElement stesso come userObject per garantire che sia accessibile al doppio click
+        node.userObject = element
+
+        // Imposta una rappresentazione leggibile del valore per il nodo
+        if (element is JsonValue) {
+            node.userObject = element // Usa il PsiElement stesso
         } else {
             node.userObject = element.text
         }

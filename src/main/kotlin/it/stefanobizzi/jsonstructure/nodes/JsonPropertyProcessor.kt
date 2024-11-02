@@ -16,15 +16,17 @@ class JsonPropertyProcessor : JsonElementProcessor {
      */
     override fun process(node: DefaultMutableTreeNode, element: PsiElement) {
         val jsonProperty = element as JsonProperty
+        node.userObject = jsonProperty // Imposta il PsiElement come userObject
+
         val value = jsonProperty.value
+        if (value != null) {
+            val propertyNode = DefaultMutableTreeNode(value)
+            propertyNode.userObject = value // Imposta PsiElement per il valore
+            node.add(propertyNode)
 
-        // Create a tree node for the JSON property with its name and value.
-        val propertyNode = DefaultMutableTreeNode("${jsonProperty.name}: ${value?.text ?: "null"}")
-        node.add(propertyNode)
-
-        // If the value of the JSON property is a JSON object or array, process it recursively.
-        if (value is JsonObject || value is JsonArray) {
-            JsonPsiTreeProcessor.processNode(propertyNode, value)
+            if (value is JsonObject || value is JsonArray) {
+                JsonPsiTreeProcessor.processNode(propertyNode, value)
+            }
         }
     }
 }

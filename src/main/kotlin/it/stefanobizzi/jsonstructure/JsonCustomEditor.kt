@@ -10,11 +10,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.ScrollType
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeListener
@@ -27,6 +30,7 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneUI
+import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
 private const val SHOW_JSON_STRUCTURE = "Show JSON Structure"
@@ -68,6 +72,31 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
         )
 
         tree = Tree(treeProcessor.createTreeRoot())
+
+        tree.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                if (e.clickCount == 2) {
+                    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
+                    val psiElement = selectedNode.userObject as? PsiElement ?: return
+                    navigateToElementInEditor(psiElement)
+                }
+            }
+        })
+        tree.cellRenderer = JsonTreeCellRenderer()
+    }
+
+    private fun navigateToElementInEditor(element: PsiElement) {
+        val document = editor.document
+        val offset = element.textOffset
+
+        if (offset < document.textLength) {
+            val logicalPosition = editor.offsetToLogicalPosition(offset)
+            editor.caretModel.moveToLogicalPosition(logicalPosition)
+            editor.scrollingModel.scrollToCaret(ScrollType.CENTER)
+            editor.contentComponent.requestFocus()
+        } else {
+            Messages.showMessageDialog("Element not found in the editor", "Error", Messages.getErrorIcon())
+        }
     }
 
     private fun createPsiChangeListener(
