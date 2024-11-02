@@ -1,7 +1,6 @@
 package it.stefanobizzi.jsonstructure.nodes
 
 import com.intellij.json.psi.JsonProperty
-import com.intellij.json.psi.JsonValue
 import com.intellij.psi.PsiElement
 import javax.swing.tree.DefaultMutableTreeNode
 

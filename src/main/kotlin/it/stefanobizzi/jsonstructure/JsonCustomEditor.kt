@@ -63,16 +63,12 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
         val treeProcessor = JsonPsiTreeProcessor(psiFile)
         editor.document.addDocumentListener(object : DocumentListener {
             override fun documentChanged(event: DocumentEvent) {
-                rebuildTree(project, treeProcessor)
+                rebuildTree(treeProcessor)
             }
         })
 
-        val psiTreeChangeListener = createPsiChangeListener(psiFile, project, treeProcessor)
-
-        // Aggiungi il listener alla gestione PSI
+        val psiTreeChangeListener = createPsiChangeListener(psiFile, treeProcessor)
         PsiManager.getInstance(project).addPsiTreeChangeListener(psiTreeChangeListener, this)
-
-
         val treeRoot = treeProcessor.createTreeRoot()
         tree = Tree(treeRoot)
 
@@ -80,36 +76,51 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
 
     private fun createPsiChangeListener(
         psiFile: PsiFile?,
-        project: Project,
         treeProcessor: JsonPsiTreeProcessor
     ) = object : PsiTreeChangeListener {
         override fun childrenChanged(event: PsiTreeChangeEvent) {
             if (event.file == psiFile) {
-                rebuildTree(project, treeProcessor)
+                rebuildTree(treeProcessor)
             }
         }
 
-        override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
-        override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
-        override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
-        override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
-        override fun beforeChildrenChange(event: PsiTreeChangeEvent) {}
-        override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
-        override fun childAdded(event: PsiTreeChangeEvent) {}
-        override fun childRemoved(event: PsiTreeChangeEvent) {}
-        override fun childReplaced(event: PsiTreeChangeEvent) {}
-        override fun childMoved(event: PsiTreeChangeEvent) {}
-        override fun propertyChanged(event: PsiTreeChangeEvent) {}
+        override fun beforeChildAddition(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun beforeChildRemoval(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun beforeChildReplacement(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun beforeChildMovement(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun beforePropertyChange(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun childAdded(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun childRemoved(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun childReplaced(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun childMoved(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
+        override fun propertyChanged(event: PsiTreeChangeEvent) {
+            // (SONAR) Can be left empty
+        }
     }
 
-    private fun rebuildTree(project: Project, treeProcessor: JsonPsiTreeProcessor) {
-        // Ottieni di nuovo il PsiFile per assicurarsi che rifletta le modifiche attuali
-        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
-
-        // Ricrea la radice dell'albero con il contenuto aggiornato
+    private fun rebuildTree(treeProcessor: JsonPsiTreeProcessor) {
         val newRootNode = treeProcessor.createTreeRoot()
-
-        // Imposta la nuova radice sull'albero esistente
         (tree.model as? DefaultTreeModel)?.setRoot(newRootNode)
         (tree.model as? DefaultTreeModel)?.reload()
     }
@@ -165,7 +176,9 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
 
     override fun getName(): String = "JSON Structure Editor"
 
-    override fun setState(state: FileEditorState) {}
+    override fun setState(state: FileEditorState) {
+        // (SONAR) Can be left empty
+    }
 
     override fun isModified(): Boolean = false
 
@@ -179,7 +192,9 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
 
     override fun <T : Any?> getUserData(key: Key<T>): T? = null
 
-    override fun <T : Any?> putUserData(key: Key<T>, value: T?) {}
+    override fun <T : Any?> putUserData(key: Key<T>, value: T?) {
+        // (SONAR) Can be left empty
+    }
 
     override fun getFile(): VirtualFile = file
 
