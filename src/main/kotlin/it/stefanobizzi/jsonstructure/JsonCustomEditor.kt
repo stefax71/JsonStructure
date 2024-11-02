@@ -34,6 +34,7 @@ import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneUI
 
 private const val SHOW_JSON_STRUCTURE = "Show JSON Structure"
+private const val HIDE_JSON_STRUCTURE = "Hide JSON Structure"
 
 class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEditor, Disposable {
     private val mainPanel = JPanel(BorderLayout())
@@ -100,6 +101,9 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
 
         toggleButton.addActionListener {
             splitPane.leftComponent = if (splitPane.leftComponent == null) treePanel else null
+
+            changeButtonLabel(splitPane, toggleButton)
+
             mainPanel.revalidate()
             mainPanel.repaint()
         }
@@ -109,9 +113,15 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
         mainPanel.add(splitPane, BorderLayout.CENTER)
     }
 
+    private fun changeButtonLabel(splitPane: JSplitPane, toggleButton: JButton) {
+        val buttonText = if (splitPane.leftComponent == null) SHOW_JSON_STRUCTURE else HIDE_JSON_STRUCTURE
+        toggleButton.text = buttonText
+        toggleButton.toolTipText = buttonText
+    }
+
     private fun createToggleStructureButton(): JButton {
-        val toggleButton = JButton(SHOW_JSON_STRUCTURE, AllIcons.Toolwindows.ToolWindowStructure)
-        toggleButton.toolTipText = SHOW_JSON_STRUCTURE
+        val toggleButton = JButton(HIDE_JSON_STRUCTURE, AllIcons.Toolwindows.ToolWindowStructure)
+        toggleButton.toolTipText = HIDE_JSON_STRUCTURE
         toggleButton.isContentAreaFilled = false
         return toggleButton
     }
