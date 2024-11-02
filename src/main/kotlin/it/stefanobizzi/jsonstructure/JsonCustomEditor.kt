@@ -17,7 +17,6 @@ import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
@@ -52,71 +51,30 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
     private fun isJsonFile() = FileTypeManager.getInstance().getFileTypeByFile(file).defaultExtension == "json"
 
     private fun setupDefaultJsonEditor(project: Project) {
-        val psiFile = PsiManager.getInstance(project).findFile(file)
-        editor = EditorFactory.getInstance().createEditor(
-            FileDocumentManager.getInstance().getDocument(psiFile!!.virtualFile)!!,
-            project,
-            file,
-            false
-        )
+        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
+        val document = FileDocumentManager.getInstance().getDocument(psiFile.virtualFile) ?: return
 
+        editor = EditorFactory.getInstance().createEditor(document, project, file, false)
         val treeProcessor = JsonPsiTreeProcessor(psiFile)
+
         editor.document.addDocumentListener(object : DocumentListener {
             override fun documentChanged(event: DocumentEvent) {
                 rebuildTree(treeProcessor)
             }
         })
 
-        val psiTreeChangeListener = createPsiChangeListener(psiFile, treeProcessor)
-        PsiManager.getInstance(project).addPsiTreeChangeListener(psiTreeChangeListener, this)
-        val treeRoot = treeProcessor.createTreeRoot()
-        tree = Tree(treeRoot)
+        PsiManager.getInstance(project).addPsiTreeChangeListener(
+            createPsiChangeListener(psiFile, treeProcessor), this
+        )
 
+        tree = Tree(treeProcessor.createTreeRoot())
     }
 
     private fun createPsiChangeListener(
         psiFile: PsiFile?,
         treeProcessor: JsonPsiTreeProcessor
-    ) = object : PsiTreeChangeListener {
-        override fun childrenChanged(event: PsiTreeChangeEvent) {
-            if (event.file == psiFile) {
-                rebuildTree(treeProcessor)
-            }
-        }
-
-        override fun beforeChildAddition(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun beforeChildRemoval(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun beforeChildReplacement(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun beforeChildMovement(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun beforePropertyChange(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun childAdded(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun childRemoved(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun childReplaced(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun childMoved(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
-        override fun propertyChanged(event: PsiTreeChangeEvent) {
-            // (SONAR) Can be left empty
-        }
+    ): PsiTreeChangeListener {
+        return JsonPsiTreeChangeListener(psiFile, treeProcessor, ::rebuildTree)
     }
 
     private fun rebuildTree(treeProcessor: JsonPsiTreeProcessor) {
