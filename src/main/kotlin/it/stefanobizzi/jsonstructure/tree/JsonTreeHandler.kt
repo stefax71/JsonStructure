@@ -4,7 +4,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.treeStructure.Tree
-import it.stefanobizzi.jsonstructure.JsonPsiTreeProcessor
 import it.stefanobizzi.jsonstructure.JsonTreeCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel

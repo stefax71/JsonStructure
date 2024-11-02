@@ -2,7 +2,7 @@ package it.stefanobizzi.jsonstructure.nodes
 
 import com.intellij.json.psi.JsonArray
 import com.intellij.psi.PsiElement
-import it.stefanobizzi.jsonstructure.JsonPsiTreeProcessor
+import it.stefanobizzi.jsonstructure.tree.JsonPsiTreeProcessor
 import javax.swing.tree.DefaultMutableTreeNode
 
 class JsonArrayProcessor : JsonElementProcessor {

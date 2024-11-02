@@ -5,7 +5,7 @@ import com.intellij.psi.PsiElement
 import javax.swing.tree.DefaultMutableTreeNode
 import com.intellij.json.psi.JsonObject
 import com.intellij.json.psi.JsonArray
-import it.stefanobizzi.jsonstructure.JsonPsiTreeProcessor
+import it.stefanobizzi.jsonstructure.tree.JsonPsiTreeProcessor
 
 class JsonPropertyProcessor : JsonElementProcessor {
     /**

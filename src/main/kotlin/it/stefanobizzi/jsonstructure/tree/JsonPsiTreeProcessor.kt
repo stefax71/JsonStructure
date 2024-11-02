@@ -1,4 +1,4 @@
-package it.stefanobizzi.jsonstructure
+package it.stefanobizzi.jsonstructure.tree
 
 import com.intellij.json.psi.JsonArray
 import com.intellij.json.psi.JsonObject

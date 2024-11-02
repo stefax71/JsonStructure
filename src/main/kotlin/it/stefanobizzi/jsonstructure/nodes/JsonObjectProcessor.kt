@@ -1,9 +1,8 @@
 package it.stefanobizzi.jsonstructure.nodes
 
 import com.intellij.json.psi.JsonObject
-import com.intellij.json.psi.JsonProperty
 import com.intellij.psi.PsiElement
-import it.stefanobizzi.jsonstructure.JsonPsiTreeProcessor
+import it.stefanobizzi.jsonstructure.tree.JsonPsiTreeProcessor
 import javax.swing.tree.DefaultMutableTreeNode
 
 class JsonObjectProcessor : JsonElementProcessor {

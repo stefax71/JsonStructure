@@ -27,6 +27,8 @@ import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeSupport
 import com.intellij.util.ui.JBUI
+import it.stefanobizzi.jsonstructure.tree.JsonPsiTreeChangeListener
+import it.stefanobizzi.jsonstructure.tree.JsonPsiTreeProcessor
 import it.stefanobizzi.jsonstructure.tree.JsonTreeHandler
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneUI
