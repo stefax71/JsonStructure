@@ -6,12 +6,11 @@ import com.intellij.psi.PsiTreeChangeListener
 
 class JsonPsiTreeChangeListener(
     private val psiFile: PsiFile?,
-    private val treeProcessor: JsonPsiTreeProcessor,
-    private val rebuildTree: (JsonPsiTreeProcessor) -> Unit
+    private val rebuildTreeCallback: () -> Unit
 ) : PsiTreeChangeListener {
     override fun childrenChanged(event: PsiTreeChangeEvent) {
         if (event.file == psiFile) {
-            rebuildTree(treeProcessor)
+            rebuildTreeCallback()
         }
     }
 

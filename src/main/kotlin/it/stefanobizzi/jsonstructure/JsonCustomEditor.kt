@@ -26,19 +26,17 @@ import com.intellij.ui.components.JBScrollPane
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeSupport
-import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
+import it.stefanobizzi.jsonstructure.tree.JsonTreeHandler
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneUI
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
 
 private const val SHOW_JSON_STRUCTURE = "Show JSON Structure"
 
 class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEditor, Disposable {
     private val mainPanel = JPanel(BorderLayout())
     private var toolbarPanel = JPanel(BorderLayout())
-    private var tree = Tree()
+    private var tree = JsonTreeHandler(project, PsiManager.getInstance(project).findFile(file)!!, JsonPsiTreeProcessor(PsiManager.getInstance(project).findFile(file)!!), navigationCallback = { navigateToElementInEditor(it) })
     private val propertyChangeSupport = PropertyChangeSupport(this)
 
     private lateinit var editor: Editor
@@ -59,30 +57,17 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
         val document = FileDocumentManager.getInstance().getDocument(psiFile.virtualFile) ?: return
 
         editor = EditorFactory.getInstance().createEditor(document, project, file, false)
-        val treeProcessor = JsonPsiTreeProcessor(psiFile)
 
         editor.document.addDocumentListener(object : DocumentListener {
             override fun documentChanged(event: DocumentEvent) {
-                rebuildTree(treeProcessor)
+                tree.rebuildTree()
             }
         })
 
         PsiManager.getInstance(project).addPsiTreeChangeListener(
-            createPsiChangeListener(psiFile, treeProcessor), this
+            createPsiChangeListener(psiFile, tree), this
         )
-
-        tree = Tree(treeProcessor.createTreeRoot())
-
-        tree.addMouseListener(object : java.awt.event.MouseAdapter() {
-            override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                if (e.clickCount == 2) {
-                    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
-                    val psiElement = selectedNode.userObject as? PsiElement ?: return
-                    navigateToElementInEditor(psiElement)
-                }
-            }
-        })
-        tree.cellRenderer = JsonTreeCellRenderer()
+        tree.addMouseListener()
     }
 
     private fun navigateToElementInEditor(element: PsiElement) {
@@ -101,20 +86,14 @@ class JsonCustomEditor(project: Project, private val file: VirtualFile) : FileEd
 
     private fun createPsiChangeListener(
         psiFile: PsiFile?,
-        treeProcessor: JsonPsiTreeProcessor
+        jsonTreeHandler: JsonTreeHandler
     ): PsiTreeChangeListener {
-        return JsonPsiTreeChangeListener(psiFile, treeProcessor, ::rebuildTree)
-    }
-
-    private fun rebuildTree(treeProcessor: JsonPsiTreeProcessor) {
-        val newRootNode = treeProcessor.createTreeRoot()
-        (tree.model as? DefaultTreeModel)?.setRoot(newRootNode)
-        (tree.model as? DefaultTreeModel)?.reload()
+        return JsonPsiTreeChangeListener(psiFile, jsonTreeHandler::rebuildTree)
     }
 
     private fun setupUI() {
         val toggleButton = createToggleStructureButton()
-        val treePanel = JBScrollPane(tree)
+        val treePanel = JBScrollPane(tree.getComponent())
         val splitPane = createSplitPane(treePanel)
 
         toggleButton.addActionListener {
