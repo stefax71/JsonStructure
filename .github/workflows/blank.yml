@@ -1,0 +1,36 @@
+name: Gradle Build
+
+on:
+  push:
+    branches:
+      - main  # o il tuo branch principale
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'  # Scegli la versione di Java necessaria per il tuo progetto
+          distribution: 'adopt'
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew buildPlugin
+
+      - name: Archive the build artifacts
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: gradle-artifacts
+          path: build/libs/*.jar  # Modifica il percorso se il tuo artefatto ha un nome o una posizione diversa
